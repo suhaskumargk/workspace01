@@ -1,92 +1,7 @@
-Pytest automation framework
-===========================
+# Automation Framework
 
-This repository contains a modular pytest-based automation framework. The
-project is organized to keep UI, API and feature tests separate while
-providing reusable utilities for configuration, data handling and reporting.
-
-Project layout
---------------
-
-automation/
-├── tests/                 # test suites
-│   ├── ui/                # UI tests
-│   ├── api/               # API tests
-├── pages/                 # Page Object Models for UI automation
-├── utils/                 # helpers (Excel reader, config manager, logger, common methods)
-├── configs/               # environment/config files (JSON/YAML/INI)
-├── reports/               # generated reports and logs
-├── requirements.txt       # Python dependencies
-└── README.md
-
-Key features / Requirements
----------------------------
-
-- Config-driven
-	- Base URLs, browser choice, and environment-specific settings are
-		stored in the `configs/` folder and loaded at runtime by the config
-		manager.
-
-- Reusable utilities
-	- `utils/` provides common helpers: Excel/CSV reader, config manager,
-		logger, API client wrapper and other small utilities so tests stay
-		concise and DRY.
-
-- Multiple environment support
-	- The framework supports different environments (dev/uat/prod). Tests
-		read the active environment from configs or an environment variable
-		and apply the appropriate base URL and credentials.
-
-How to run
-----------
-
-1. Install dependencies:
-
-```bash
-pip install -r automation/requirements.txt
-```
-
-2. Run tests (example - run api tests and show output):
-
-```bash
-pytest -m api
-pytest -m ui
-```
-
-3. Configure environments
-
-- Put environment-specific settings in `automation/configs/` (for example
-	`dev.json`, `uat.json`, `prod.json`) and load them via the config
-	manager utility.
-
-Notes
------
-- Register any custom pytest marks (like `api` and `ui`) in `pytest.ini`
-	to avoid warnings:
-
-```ini
-[pytest]
-markers =
-		api: mark tests as API tests
-		ui: mark tests as UI tests
-```
-
-If you'd like, I can also add a short example showing how to read
-credentials from `automation/data/userdata.xlsx` using the existing utility
-or add a sample `pytest.ini` and a tiny script to pick the environment at
-runtime.
-
-Reporting
----------
-
-Pytest HTML reporting is integrated using the `pytest-html` plugin. To
-generate a self-contained HTML report run:
-
-```bash
-pytest --html=automation/reports/pytest_report.html --self-contained-html
-```
-
-The generated report will be written to `automation/reports/pytest_report.html`.
+This repository contains a modular pytest-based automation framework and
+example UI/API tests.
 
 Setup instructions
 ------------------
@@ -110,7 +25,7 @@ How to run UI tests
 Run only UI-marked tests and show console output (use -s to disable capture):
 
 ```bash
-pytest -m ui
+pytest -m ui 
 ```
 
 How to run API tests
@@ -125,16 +40,67 @@ pytest -m api
 How to generate / view reports
 ------------------------------
 
-```bash
-- To produce a self-contained HTML report using `pytest-html`:
+To produce a self-contained HTML report (requires `pytest-html`):
 
 ```bash
-pytest --html=automation/reports/pytest_report.html --self-contained-html
+pytest --html=automation/reports/report.html --self-contained-html
 ```
 
-- After running the above command open `automation/reports/pytest_report.html` in your browser to view the report.
+Open `automation/reports/report.html` in your browser to view the
+report.
 
+Framework structure
+-------------------
 
+This repository follows a modular automation framework layout. The core
+folders you should expect under `automation/` are:
 
+```
+automation/
+├── tests/                 # test suites
+│   ├── ui/                # UI tests
+│   ├── api/               # API tests
+├── pages/                 # Page Object Models for UI automation
+├── utils/                 # helpers (Excel reader, config manager, logger, common methods)
+├── configs/               # environment/config files (JSON/YAML/INI)
+├── reports/               # generated reports and logs
+├── requirements.txt       # Python dependencies
+└── README.md
+```
 
+Requirements
+------------
 
+- Config-driven: base URLs, browser, and environment settings are stored
+  under `configs/` and loaded by the config manager.
+- Reusable utilities: `utils/` should contain the Excel/CSV reader,
+  logger, API client wrapper and other helpers so tests remain DRY.
+- Support multiple environments: dev/uat/prod support with environment
+  specific configuration and credential files.
+
+Notes
+-----
+
+- Register any custom pytest marks (like `api` and `ui`) in `pytest.ini` to
+  avoid warnings. Example:
+
+```ini
+[pytest]
+markers =
+    api: mark tests as API tests
+    ui: mark tests as UI tests
+```
+
+- Scraping live pages can be flaky due to network conditions, dynamic
+  page changes, or anti-bot measures; consider adding retries, explicit
+  waits, or using a headless browser profile for CI runs.
+
+Reporting
+---------
+
+Pytest HTML reporting is integrated using the `pytest-html` plugin. The
+HTML report will be created at `automation/reports/pytest_report.html` if
+you run the `--html` option above.
+
+If you'd like, I can also add a sample `pytest.ini` with registered
+markers or a CI example to run tests headlessly.
