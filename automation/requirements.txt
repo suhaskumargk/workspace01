@@ -1,0 +1,12 @@
+pytest
+pytest-html
+requests
+pyyaml
+openpyxl
+pandas
+selenium
+webdriver-manager
+pytest-xdist
+allure-pytest
+python-dotenv
+xlrd
