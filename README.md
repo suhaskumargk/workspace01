@@ -49,6 +49,21 @@ pytest --html=automation/reports/report.html --self-contained-html
 Open `automation/reports/report.html` in your browser to view the
 report.
 
+Alternatively, you can generate an Allure report (recommended for
+richer test-results visualization). Run the tests with the Allure
+results directory and then serve the report locally:
+
+```bash
+pytest --alluredir=allure-results
+allure serve allure-results/
+```
+
+Notes:
+- Install `pytest-html` to use the `--html` option: `pip install pytest-html`.
+- For Allure, install `allure-pytest` (`pip install allure-pytest`) and
+  the Allure commandline tool (install via package manager or from
+  https://docs.qameta.io/allure/).
+
 Framework structure
 -------------------
 
@@ -94,13 +109,3 @@ markers =
 - Scraping live pages can be flaky due to network conditions, dynamic
   page changes, or anti-bot measures; consider adding retries, explicit
   waits, or using a headless browser profile for CI runs.
-
-Reporting
----------
-
-Pytest HTML reporting is integrated using the `pytest-html` plugin. The
-HTML report will be created at `automation/reports/pytest_report.html` if
-you run the `--html` option above.
-
-If you'd like, I can also add a sample `pytest.ini` with registered
-markers or a CI example to run tests headlessly.

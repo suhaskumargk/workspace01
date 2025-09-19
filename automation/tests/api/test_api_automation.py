@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 
 class Test_API_Automation:
 
+    @allure.title("Test create user")
+    @allure.description("This test attempts to create a user in the system.")
+    @allure.testcase("TESTCASE-001")
     @pytest.mark.api
     def test_post_create_user(self, api_config):
         base_url = api_config.get('api_data', 'base_url')
@@ -25,6 +28,9 @@ class Test_API_Automation:
             assert response.json()
         logger.info(response.json())
 
+    @allure.title("Test update user")
+    @allure.description("This test attempts to update a user in the system.")
+    @allure.testcase("TESTCASE-002")
     @pytest.mark.api
     def test_post_updateuser(self, api_config):
         base_url = api_config.get('api_data', 'base_url')
@@ -35,6 +41,9 @@ class Test_API_Automation:
         assert response.json()
         logger.info(response.json())
 
+    @allure.title("Test get users")
+    @allure.description("This test attempts to retrieve a list of users from the system.")
+    @allure.testcase("TESTCASE-003")
     @pytest.mark.api
     def test_get_users(self, api_config):
         base_url = api_config.get('api_data', 'base_url')
@@ -43,6 +52,9 @@ class Test_API_Automation:
         assert response.json()
         logger.info(response.json())
 
+    @allure.title("Test delete user")
+    @allure.description("This test attempts to delete a user from the system.")
+    @allure.testcase("TESTCASE-004")
     @pytest.mark.api
     def test_del_user(self, api_config):
         base_url = api_config.get('api_data', 'base_url')
