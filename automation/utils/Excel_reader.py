@@ -1,87 +1,85 @@
 
 from __future__ import annotations
-
 import os
-from typing import Iterable, List, Mapping, Optional, Union
-
+from typing import Any
 import pandas as pd
 
-
-TableLike = Union[pd.DataFrame, Iterable[Mapping], Mapping[str, Iterable], Iterable[Iterable]]
-
-
-def _normalize_to_df(data: TableLike, columns: Optional[List[str]] = None) -> pd.DataFrame:
-	if isinstance(data, pd.DataFrame):
-		return data.copy()
-
-	# list/iterable of mappings like [{'a':1}, {'a':2}]
-	try:
-		# check first element safely
-		iterator = iter(data)  # type: ignore[arg-type]
-		first = next(iterator)
-	except StopIteration:
-		# empty iterable -> empty DataFrame with columns if provided
-		return pd.DataFrame(columns=columns)
-	except TypeError:
-		# Not iterable as expected -> fallthrough to raise
-		raise ValueError("Unsupported data type for save_table")
-
-	# if first is a mapping, treat as records
-	if isinstance(first, Mapping):
-		# rebuild iterator including first
-		records = [first] + list(iterator)
-		return pd.DataFrame.from_records(records)
-
-	# if first is an iterable (row)
-	if isinstance(first, Iterable):
-		rows = [list(first)] + [list(r) for r in iterator]
-		return pd.DataFrame(rows, columns=columns)
-
-	# fallback
-	raise ValueError("Unsupported row element type for save_table")
-
-
-def save_table(
-	data: TableLike,
-	out_path: str,
-	columns: Optional[List[str]] = None,
-	index: bool = False,
-	excel_sheet_name: str = "Sheet1",
-) -> str:
-	"""Save tabular data to CSV or Excel using a single generic method.
-
-	The output format is chosen from the file extension of `out_path`:
-	  - .csv -> CSV
-	  - .xls/.xlsx -> Excel (openpyxl)
-
-	Args:
-		data: table-like input (see module docstring).
-		out_path: destination file path. Parent directories will be created.
-		columns: optional column names (useful when data is list-of-lists).
-		index: whether to write row index to file (default False).
-		excel_sheet_name: sheet name when writing Excel files.
-
-	Returns:
-		The absolute path to the written file.
-
-	Raises:
-		ValueError for unsupported output extensions or input formats.
-	"""
-
-	df = _normalize_to_df(data, columns=columns)
-
-	out_path = os.path.abspath(out_path)
-	os.makedirs(os.path.dirname(out_path), exist_ok=True)
-
-	lower = out_path.lower()
+def read_table(path: str, sheet_name=0) -> pd.DataFrame:
+	if not os.path.exists(path):
+		raise FileNotFoundError(f"File not found: {path}")
+	lower = path.lower()
 	if lower.endswith(".csv"):
-		df.to_csv(out_path, index=index)
-	elif lower.endswith(".xls") or lower.endswith(".xlsx"):
-		# use pandas' ExcelWriter which will pick openpyxl
-		with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
-			df.to_excel(writer, index=index, sheet_name=excel_sheet_name)
-	else:
-		raise ValueError("Unsupported output extension, use .csv, .xls or .xlsx")
+		return pd.read_csv(path)
+	if lower.endswith((".xls", ".xlsx")):
+		return pd.read_excel(path, sheet_name=sheet_name)
+	raise ValueError("Unsupported file type. Use .csv, .xls or .xlsx")
 
+
+def write_table(df: pd.DataFrame, path: str, sheet_name: str = "Sheet1", index: bool = False) -> None:
+	out_dir = os.path.dirname(os.path.abspath(path))
+	if out_dir:
+		os.makedirs(out_dir, exist_ok=True)
+	lower = path.lower()
+	if lower.endswith(".csv"):
+		df.to_csv(path, index=index)
+		return
+	if lower.endswith((".xls", ".xlsx")):
+		with pd.ExcelWriter(path, engine="openpyxl") as writer:
+			df.to_excel(writer, index=index, sheet_name=sheet_name)
+		return
+	raise ValueError("Unsupported file type. Use .csv, .xls or .xlsx")
+
+
+def append_row(path: str, row: Any, sheet_name: str = "Sheet1") -> None:
+	# Convert row to single-row DataFrame
+	if isinstance(row, dict):
+		new = pd.DataFrame([row])
+	else:
+		# treat as list-like
+		new = pd.DataFrame([row])
+	if os.path.exists(path):
+		if path.lower().endswith(".csv"):
+			# append to CSV without writing header again
+			new.to_csv(path, mode="a", header=False, index=False)
+			return
+		# Excel: read, concat, write back
+		df = read_table(path, sheet_name=sheet_name)
+		df = pd.concat([df, new], ignore_index=True)
+		write_table(df, path, sheet_name=sheet_name)
+		return
+	# File does not exist: just write new row with header
+	write_table(new, path, sheet_name=sheet_name)
+
+
+def update_cell(path: str, row_index: int, column: Any, value: Any, sheet_name: str = "Sheet1") -> None:
+	df = read_table(path, sheet_name=sheet_name)
+	# pandas allows setting by label (loc/at) or by position (iat)
+	try:
+		df.at[row_index, column] = value
+	except Exception:
+		# fallback to position-based set if column is an int
+		df.iat[row_index, int(column)] = value
+	write_table(df, path, sheet_name=sheet_name)
+
+
+__all__ = ["read_table", "write_table", "append_row", "update_cell"]
+
+
+def save_table(data, out_path: str, columns=None, index: bool = False, excel_sheet_name: str = "Sheet1"):
+	# If data is a pandas DataFrame already, write directly
+	if isinstance(data, pd.DataFrame):
+		write_table(data, out_path, sheet_name=excel_sheet_name, index=index)
+		return out_path
+	# If data is an iterable of mappings (rows), convert to DataFrame
+	try:
+		df = pd.DataFrame.from_records(list(data))
+	except Exception:
+		# fallback: try to build DataFrame directly
+		df = pd.DataFrame(data, columns=columns)
+	write_table(df, out_path, sheet_name=excel_sheet_name, index=index)
 	return out_path
+
+
+__all__.append("save_table")
+
 
