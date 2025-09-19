@@ -27,6 +27,7 @@ class UIAutomationPage:
 		WebDriverWait(self.driver, wait_timeout).until(
 			EC.presence_of_element_located((By.XPATH, self.RESULT_PRESENT))
 		)
+		
 
 	def get_mobile_rows(self):
 		names = self.driver.find_elements(By.XPATH, self.RESULT_ITEM_TITLE)
