@@ -1,8 +1,7 @@
 import pytest
-
+from automation.pages.ui_automation_page import UIAutomationPage
 from automation.utils.config_manager import ConfigManager
 from automation.utils.Excel_reader import save_table
-from automation.pages.ui_automation_page import UIAutomationPage
 import logging
 import allure
 
@@ -11,14 +10,14 @@ logger = logging.getLogger(__name__)
 
 class Test_UI_Automation:
 
-    @allure.title("Test create user")
-    @allure.description("This test attempts to create a user in the system.")
+    @allure.title("Test to search items and save results to Excel")
+    @allure.description("This test searches for mobile items and saves the results to an Excel file.")
     @allure.testcase("TESTCASE-001")
     @pytest.mark.ui
     def test_open_base_url(self, driver):
-        cm = ConfigManager()
+        """Test to open base URL and verify the data for searched items."""
         page = UIAutomationPage(driver)
-        env = cm.get('production_env', 'base_urls')
+        env = ConfigManager.get('production_env', 'base_url')
         page.open(env)
         page.search('Mobile')
         rows = page.get_mobile_rows()

@@ -16,13 +16,16 @@ class UIAutomationPage:
 	RESULT_PRESENT = '//div[@role="listitem"]//h2//span'
 
 	def __init__(self, driver):
+		"""Initialize with a Selenium WebDriver instance."""
 		self.driver = driver
 
 	def open(self, url: str):
+		"""Open the specified URL in the browser."""
 		self.driver.get(url)
 		logger.info(f"Opened URL: {url}")
 
 	def search(self, term: str, wait_timeout: int = 15):
+		"""Perform a search for the given term and wait for results to load."""
 		logger.info(f"Initiating search for term: {term}")
 		self.driver.find_element(By.XPATH, self.SEARCH_INPUT).click()
 		self.driver.find_element(By.XPATH, self.SEARCH_INPUT).send_keys(term)
@@ -32,6 +35,7 @@ class UIAutomationPage:
 
 
 	def get_mobile_rows(self):
+		"""Extract mobile data rows from the search results."""
 		logger.info("Extracting mobile rows from search results")
 		names = self.driver.find_elements(By.XPATH, self.RESULT_ITEM_TITLE)
 		prices = self.driver.find_elements(By.XPATH, self.RESULT_ITEM_PRICE)

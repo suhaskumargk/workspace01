@@ -1,47 +1,29 @@
 
-import configparser
 import os
-from typing import Optional
+import configparser
+
+
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_CONFIG_PATH = os.path.join(_BASE_DIR, 'configs', 'config.ini')
+config = configparser.ConfigParser()
+config.read(_CONFIG_PATH)
 
 
 class ConfigManager:
 
-	def __init__(self, path: Optional[str] = None):
-		"""Initialize ConfigManager with path to config file. If path is None, use default location."""
-		if path:
-			self.path = path
-		else:
-			base_dir = os.path.dirname(os.path.dirname(__file__))
-			self.path = os.path.join(base_dir, 'configs', 'config.ini')
-		self._parser = configparser.ConfigParser()
-		self.load()
+	@staticmethod
+	def get(section: str, key: str):
+		"""Get the value for a given section and key"""
+		return config.get(section, key)
 
-	def load(self) -> None:
-		"""Load configuration from file. If file missing, create an empty one."""
-		self._parser.read(self.path)
+	@staticmethod
+	def set(section: str, key: str, value: str):
+		"""Set the value for a given section and key"""
+		return config.set(section, key, value)
 
-	def save(self) -> None:
-		"""Save configuration to disk."""
-		with open(self.path, 'w') as f:
-			self._parser.write(f)
-
-	def get(self, section: str, key: str) -> Optional[str]:
-			if self._parser.has_section(section) and self._parser.has_option(section, key):
-				return self._parser.get(section, key)
-			return None
-
-	def set(self, section: str, key: str, value: str) -> None:
-		if not self._parser.has_section(section):
-			self._parser.add_section(section)
-		self._parser.set(section, key, value)
-		self.save()
-
-	def delete(self, section: str, key: Optional[str] = None) -> bool:
+	@staticmethod
+	def delete(section: str, key: str = None):
 		"""Delete a key in a section, or delete a whole section if key is None."""
 		if key is None:
-			result = self._parser.remove_section(section)
-		else:
-			result = self._parser.remove_option(section, key)
-		if result:
-			self.save()
-		return result
+			return config.remove_section(section)
+		return config.remove_option(section, key)
