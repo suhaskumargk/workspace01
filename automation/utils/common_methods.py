@@ -4,14 +4,8 @@ import os
 from typing import List
 import os
 
-# Root of the automation package (automation/)
-BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-
-# Common subpaths
-CONFIGS_DIR = os.path.join(BASE_DIR, 'configs')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
-REPORTS_DIR = os.path.join(BASE_DIR, 'reports')
-PAGES_DIR = os.path.join(BASE_DIR, 'pages')
 
 class common_methods:
     @staticmethod
