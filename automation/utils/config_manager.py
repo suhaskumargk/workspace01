@@ -1,17 +1,18 @@
 
 import configparser
 import os
-import tempfile
-from typing import Optional, Dict
+from typing import Optional
 
 
 class ConfigManager:
 
 	def __init__(self, path: Optional[str] = None):
+		"""Initialize ConfigManager with path to config file. If path is None, use default location."""
 		if path:
 			self.path = path
 		else:
-			self.path = os.path.join('.', 'automation', 'configs', 'config.ini')
+			base_dir = os.path.dirname(os.path.dirname(__file__))
+			self.path = os.path.join(base_dir, 'configs', 'config.ini')
 		self._parser = configparser.ConfigParser()
 		self.load()
 

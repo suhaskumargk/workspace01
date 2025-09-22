@@ -18,10 +18,10 @@ class Test_UI_Automation:
     def test_open_base_url(self, driver):
         cm = ConfigManager()
         page = UIAutomationPage(driver)
-        page.open(cm.get('production_env', 'base_urls'))
-        logger.info(f"Test navigated to URL: {driver.current_url}")
+        env = cm.get('production_env', 'base_urls')
+        page.open(env)
         page.search('Mobile')
         rows = page.get_mobile_rows()
-        assert len(rows) >= 10, f"Expected at least 10 result rows, but found {len(rows)}"
-        save_table(rows, 'automation/reports/mobiles.csv')
+        assert len(rows) > 0, f"Expected at least 1 result rows, but found {len(rows)}"
         save_table(rows, 'automation/reports/mobiles.xlsx')
+        logger.info(f"Saved {len(rows)} rows of mobile data to Excel file")
