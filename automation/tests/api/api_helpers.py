@@ -20,7 +20,7 @@ def post_create_user(base_url, headers, payload, username, password):
     
 def post_create_single_user(base_url, headers, payload):
     """Sends a POST request with data to a specified endpoint."""
-    logger.info("creating user for validate update")
+    logger.info("creating user for validate update & delete")
     response = requests.post(f'{base_url}/users/add', json=payload, headers=headers)
     assert response.status_code == 201
     logger.info(f"Response Status Code: {response.status_code}")
