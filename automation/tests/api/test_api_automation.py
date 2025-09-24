@@ -2,8 +2,10 @@ import pytest
 import requests
 from automation.utils.common_methods import common_methods
 from automation.utils.config_manager import ConfigManager
+from . import api_helpers
 import allure
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +20,8 @@ class Test_API_Automation:
         headers = common_methods.get_json_payload('headers.json')
         payload = common_methods.get_json_payload('create_user.json')
         username , password  = common_methods.get_credentials_from_xlsx('userdata.xlsx')
-        for i in range(15):
-            payload['username'] = username[i]
-            payload['password'] = password[i]
-            response = requests.post(f'{base_url}/users/add', json=payload, headers=headers)
-            assert response.status_code == 201
-            assert response.json().get('id') is not None
-        logger.info(response.json())
+        response = api_helpers.post_create_user(base_url, headers, payload, username, password)
+        assert response is True
 
     @allure.title("Test update user")
     @allure.description("This test attempts to update a user in the system.")
@@ -34,25 +31,20 @@ class Test_API_Automation:
         base_url = ConfigManager.get('api_data', 'base_url')
         headers = common_methods.get_json_payload('headers.json')
         payload = common_methods.get_json_payload('create_user.json')
-        response = requests.post(f'{base_url}/users/add', json=payload, headers=headers)
-        assert response.status_code == 201
-        assert response.json().get('id') is not None
+        response = api_helpers.post_create_single_user(base_url, headers, payload)
+        assert response is not None
         payload = common_methods.get_json_payload('update_user.json')
-        response = requests.put(f"{base_url}/users/{(response.json().get('id'))-1}", json=payload, headers=headers)
-        assert response.status_code == 200
-        assert response.json()
-        logger.info(response.json())
-
+        response = api_helpers.put_update_user(base_url, headers, payload, response)
+        assert response is not None
+        
     @allure.title("Test get users")
     @allure.description("This test attempts to retrieve a list of users from the system.")
     @allure.testcase("TESTCASE-003")
     @pytest.mark.api
     def test_get_users(self):
         base_url = ConfigManager.get('api_data', 'base_url')
-        response = requests.get(f"{base_url}/users")
-        assert response.status_code == 200
-        assert response.json()
-        logger.info(response.json())
+        response = api_helpers.get_users(base_url)
+        assert response is not None
 
     @allure.title("Test delete user")
     @allure.description("This test attempts to delete a user from the system.")
@@ -62,11 +54,7 @@ class Test_API_Automation:
         base_url = ConfigManager.get('api_data', 'base_url')
         headers = common_methods.get_json_payload('headers.json')
         payload = common_methods.get_json_payload('create_user.json')
-        response = requests.post(f'{base_url}/users/add', json=payload, headers=headers)
-        assert response.status_code == 201
-        assert response.json().get('id') is not None
-        response = requests.delete(f"{base_url}/users/{(response.json().get('id'))-1}", headers=headers)
-        assert response.status_code == 200
-        assert response.json()
-        logger.info(response.json())
-    
+        response = api_helpers.post_create_single_user(base_url, headers, payload)
+        assert response is not None
+        response = api_helpers.delete_user(base_url, headers, response)
+        assert response is not None
