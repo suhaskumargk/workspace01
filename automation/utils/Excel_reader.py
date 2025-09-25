@@ -8,11 +8,9 @@ def read_table(path: str, sheet_name=0) -> pd.DataFrame:
 	if not os.path.exists(path):
 		raise FileNotFoundError(f"File not found: {path}")
 	lower = path.lower()
-	if lower.endswith(".csv"):
-		return pd.read_csv(path)
 	if lower.endswith((".xls", ".xlsx")):
 		return pd.read_excel(path, sheet_name=sheet_name)
-	raise ValueError("Unsupported file type. Use .csv, .xls or .xlsx")
+	raise ValueError("Unsupported file type. Use .xls or .xlsx")
 
 
 def write_table(df: pd.DataFrame, path: str, sheet_name: str = "Sheet1", index: bool = False) -> None:
@@ -20,44 +18,31 @@ def write_table(df: pd.DataFrame, path: str, sheet_name: str = "Sheet1", index: 
 	if out_dir:
 		os.makedirs(out_dir, exist_ok=True)
 	lower = path.lower()
-	if lower.endswith(".csv"):
-		df.to_csv(path, index=index)
-		return
 	if lower.endswith((".xls", ".xlsx")):
 		with pd.ExcelWriter(path, engine="openpyxl") as writer:
 			df.to_excel(writer, index=index, sheet_name=sheet_name)
 		return
-	raise ValueError("Unsupported file type. Use .csv, .xls or .xlsx")
+	raise ValueError("Unsupported file type. Use .xls or .xlsx")
 
 
 def append_row(path: str, row: Any, sheet_name: str = "Sheet1") -> None:
-	# Convert row to single-row DataFrame
 	if isinstance(row, dict):
 		new = pd.DataFrame([row])
 	else:
-		# treat as list-like
 		new = pd.DataFrame([row])
 	if os.path.exists(path):
-		if path.lower().endswith(".csv"):
-			# append to CSV without writing header again
-			new.to_csv(path, mode="a", header=False, index=False)
-			return
-		# Excel: read, concat, write back
 		df = read_table(path, sheet_name=sheet_name)
 		df = pd.concat([df, new], ignore_index=True)
 		write_table(df, path, sheet_name=sheet_name)
 		return
-	# File does not exist: just write new row with header
 	write_table(new, path, sheet_name=sheet_name)
 
 
 def update_cell(path: str, row_index: int, column: Any, value: Any, sheet_name: str = "Sheet1") -> None:
 	df = read_table(path, sheet_name=sheet_name)
-	# pandas allows setting by label (loc/at) or by position (iat)
 	try:
 		df.at[row_index, column] = value
 	except Exception:
-		# fallback to position-based set if column is an int
 		df.iat[row_index, int(column)] = value
 	write_table(df, path, sheet_name=sheet_name)
 
@@ -66,15 +51,12 @@ __all__ = ["read_table", "write_table", "append_row", "update_cell"]
 
 
 def save_table(data, out_path: str, columns=None, index: bool = False, excel_sheet_name: str = "Sheet1"):
-	# If data is a pandas DataFrame already, write directly
 	if isinstance(data, pd.DataFrame):
 		write_table(data, out_path, sheet_name=excel_sheet_name, index=index)
 		return out_path
-	# If data is an iterable of mappings (rows), convert to DataFrame
 	try:
 		df = pd.DataFrame.from_records(list(data))
 	except Exception:
-		# fallback: try to build DataFrame directly
 		df = pd.DataFrame(data, columns=columns)
 	write_table(df, out_path, sheet_name=excel_sheet_name, index=index)
 	return out_path
